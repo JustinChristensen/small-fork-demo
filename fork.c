@@ -14,7 +14,7 @@ struct args {
 
 bool parse_args(struct args *args, int argc, char **argv)
 {
-    bool success = true;
+    bool result = true;
 
     const struct option options[] = {
         { "sleep", no_argument, &args->should_sleep, 1 },
@@ -24,22 +24,23 @@ bool parse_args(struct args *args, int argc, char **argv)
 
     int fl;
 
-    while ((fl = getopt_long(argc, argv, "f:", options, NULL)) != -1 && success) {
+    while (result && (fl = getopt_long(argc, argv, "f:", options, NULL)) != -1) {
         switch (fl) {
             case 'f':
                 if ((args->forked_children = strtol(optarg, NULL, 10)) == 0) {
                     perror("argument error");
+                    result = false;
                 }
                 break;
             case 0:
                 break;
             default:
-                success = false;
+                result = false;
                 break;
         }                                             
     }
 
-    return success;
+    return result;
 }
 
 static int waitall(int exit_status) 
@@ -78,11 +79,11 @@ static int waitall(int exit_status)
 
 int main(int argc, char *argv[])
 {
-    struct args args;
+    struct args args = { 0, 1 };
 
-    bool parse_success = parse_args(&args, argc, argv);
+    bool parse_result = parse_args(&args, argc, argv);
 
-    if (!parse_success) {
+    if (!parse_result) {
         return EXIT_FAILURE;
     }
 
