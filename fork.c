@@ -8,39 +8,42 @@
 #include <getopt.h>
 
 struct args {
-    int should_sleep;
     int forked_children;
+    bool should_sleep;
 };
 
 bool parse_args(struct args *args, int argc, char **argv)
 {
-    bool result = true;
+    bool success = true;
 
     const struct option options[] = {
-        { "sleep", no_argument, &args->should_sleep, 1 },
+        { "sleep", no_argument, NULL, 's' },
         { "fork", required_argument, NULL, 'f' },
         { NULL, 0, NULL, 0 }
     };
 
     int fl;
 
-    while (result && (fl = getopt_long(argc, argv, "f:", options, NULL)) != -1) {
+    while (success && (fl = getopt_long(argc, argv, "f:", options, NULL)) != -1) {
         switch (fl) {
             case 'f':
                 if ((args->forked_children = strtol(optarg, NULL, 10)) == 0) {
                     perror("argument error");
-                    result = false;
+                    success = false;
                 }
+                break;
+            case 's':
+                args->should_sleep = true;
                 break;
             case 0:
                 break;
             default:
-                result = false;
+                success = false;
                 break;
         }                                             
     }
 
-    return result;
+    return success;
 }
 
 static int waitall(int exit_status) 
@@ -79,7 +82,7 @@ static int waitall(int exit_status)
 
 int main(int argc, char *argv[])
 {
-    struct args args = { 0, 1 };
+    struct args args = { 1, 0 };
 
     bool parse_result = parse_args(&args, argc, argv);
 
